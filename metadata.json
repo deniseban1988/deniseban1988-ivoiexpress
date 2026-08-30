@@ -1,0 +1,6 @@
+{
+  "name": "IVOIReXpress Nouvelle Génération",
+  "description": "Plateforme nationale multi-services en Côte d'Ivoire : Transport interurbain, Hôtellerie, IPTV & VOD Haute Définition, Vidéosurveillance IVOIReXpress Vision et AI Core.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

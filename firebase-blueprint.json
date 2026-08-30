@@ -1,0 +1,189 @@
+{
+  "entities": {
+    "User": {
+      "collectionName": "users",
+      "description": "Utilisateurs de la plateforme IVOIReXpress (Passagers, Chauffeurs, Admins Agence, Admins Hôtel, Superadmins)",
+      "fields": {
+        "uid": { "type": "string", "required": true, "description": "ID d'authentification Firebase" },
+        "email": { "type": "string", "required": true, "description": "Adresse email" },
+        "fullName": { "type": "string", "required": true, "description": "Nom complet" },
+        "phone": { "type": "string", "required": false, "description": "Numéro de téléphone" },
+        "role": { "type": "string", "required": true, "description": "Rôle (SUPERADMIN, ADMIN_AGENCY, ADMIN_HOTEL, DRIVER, PASSENGER)" },
+        "agencyId": { "type": "string", "required": false, "description": "ID de la compagnie de transport liée" },
+        "hotelId": { "type": "string", "required": false, "description": "ID de l'établissement hôtelier lié" },
+        "createdAt": { "type": "string", "required": true, "description": "Date de création ISO" }
+      }
+    },
+    "TransportTrip": {
+      "collectionName": "transport_trips",
+      "description": "Lignes et trajets d'autocars inter-villes",
+      "fields": {
+        "agencyId": { "type": "string", "required": true, "description": "ID de la compagnie" },
+        "agencyName": { "type": "string", "required": true, "description": "Nom de la compagnie (ex: UTB)" },
+        "origin": { "type": "string", "required": true, "description": "Ville de départ (ex: Abidjan)" },
+        "destination": { "type": "string", "required": true, "description": "Ville d'arrivée (ex: Yamoussoukro)" },
+        "departureTime": { "type": "string", "required": true, "description": "Heure de départ GMT" },
+        "priceFCFA": { "type": "number", "required": true, "description": "Tarif du trajet en FCFA" },
+        "availableSeats": { "type": "number", "required": true, "description": "Nombre de sièges restants" },
+        "totalSeats": { "type": "number", "required": true, "description": "Capacité totale de l'autocar" },
+        "busRegistration": { "type": "string", "required": true, "description": "Plaque d'immatriculation" },
+        "status": { "type": "string", "required": true, "description": "Statut (SCHEDULED, IN_TRANSIT, COMPLETED, CANCELLED)" }
+      }
+    },
+    "Reservation": {
+      "collectionName": "reservations",
+      "description": "Réservations de billets et de chambres hôtelières",
+      "fields": {
+        "userId": { "type": "string", "required": true, "description": "ID de l'utilisateur" },
+        "type": { "type": "string", "required": true, "description": "Type de réservation (TRANSPORT, HOTEL)" },
+        "targetId": { "type": "string", "required": true, "description": "ID du trajet ou de la chambre" },
+        "passengerName": { "type": "string", "required": true, "description": "Nom du bénéficiaire" },
+        "amountFCFA": { "type": "number", "required": true, "description": "Montant payé en FCFA" },
+        "paymentProvider": { "type": "string", "required": true, "description": "Moyen de paiement (WAVE, ORANGE_MONEY, MTN_MOMO, MOOV_MONEY, VISA)" },
+        "qrCodeData": { "type": "string", "required": true, "description": "Signature QR ED25519" },
+        "status": { "type": "string", "required": true, "description": "Statut (CONFIRMED, USED, CANCELLED)" },
+        "createdAt": { "type": "string", "required": true, "description": "Horodatage de paiement" }
+      }
+    },
+    "Hotel": {
+      "collectionName": "hotels",
+      "description": "Établissements hôteliers et gestion des chambres",
+      "fields": {
+        "name": { "type": "string", "required": true, "description": "Nom de l'hôtel" },
+        "city": { "type": "string", "required": true, "description": "Ville d'implantation" },
+        "address": { "type": "string", "required": true, "description": "Adresse physique" },
+        "starRating": { "type": "number", "required": true, "description": "Nombre d'étoiles" },
+        "totalRooms": { "type": "number", "required": true, "description": "Nombre de chambres" },
+        "availableRooms": { "type": "number", "required": true, "description": "Chambres actuellement disponibles" },
+        "minPriceFCFA": { "type": "number", "required": true, "description": "Tarif de départ par nuitée" },
+        "iptvAccessEnabled": { "type": "boolean", "required": true, "description": "Pass télévisuel IPTV actif" }
+      }
+    },
+    "Partner": {
+      "collectionName": "partner_registry",
+      "description": "Catalogue et accréditation des partenaires de l'écosystème",
+      "fields": {
+        "name": { "type": "string", "required": true, "description": "Raison sociale" },
+        "category": { "type": "string", "required": true, "description": "Catégorie (TRANSPORT_AGENCY, HOTEL_CHAIN, IPTV_PROVIDER, TECH_VENDOR, BANK_FINTECH)" },
+        "contractStatus": { "type": "string", "required": true, "description": "Statut contractuel (ACTIVE, PENDING_APPROVAL, SUSPENDED)" },
+        "apiKey": { "type": "string", "required": true, "description": "Clé d'accès API publique" },
+        "slaTargetPercent": { "type": "number", "required": true, "description": "SLA contractuel (%)" },
+        "monthlyVolumeFCFA": { "type": "number", "required": true, "description": "Volume d'activité mensuel" },
+        "joinedDate": { "type": "string", "required": true, "description": "Date d'adhésion" }
+      }
+    },
+    "AuditLog": {
+      "collectionName": "audit_logs",
+      "description": "Journaux d'audit de sécurité, actions administrateur et mouvements de fonds",
+      "fields": {
+        "timestamp": { "type": "string", "required": true, "description": "Horodatage ISO" },
+        "action": { "type": "string", "required": true, "description": "Libellé de l'action (RESERVATION_CREATED, PAYMENT_VERIFIED, QR_SCANNED)" },
+        "actorUid": { "type": "string", "required": true, "description": "UID de l'utilisateur ayant exécuté l'action" },
+        "actorRole": { "type": "string", "required": true, "description": "Rôle de l'acteur" },
+        "severity": { "type": "string", "required": true, "description": "Niveau de sévérité (INFO, WARNING, CRITICAL)" },
+        "details": { "type": "string", "required": true, "description": "Détails techniques de l'événement" }
+      }
+    },
+    "IPTVContent": {
+      "collectionName": "iptv_contents",
+      "description": "Catalogue de chaînes TV en direct et contenus VOD pour autocars & hôtels",
+      "fields": {
+        "title": { "type": "string", "required": true, "description": "Titre du contenu ou nom de chaîne" },
+        "category": { "type": "string", "required": true, "description": "Catégorie (CHAINE_NATIONALE, MOVIES, SPORT, DOCUMENTARY)" },
+        "streamUrl": { "type": "string", "required": true, "description": "URL de flux vidéo HLS/DASH" },
+        "isVipOnly": { "type": "boolean", "required": true, "description": "Réservé aux membres Pass VIP" },
+        "quality": { "type": "string", "required": true, "description": "Résolution (FHD_1080P, HD_720P, 4K)" }
+      }
+    },
+    "VIPSubscription": {
+      "collectionName": "vip_subscriptions",
+      "description": "Abonnements et Pass Privilège VIP de la plateforme",
+      "fields": {
+        "userId": { "type": "string", "required": true, "description": "UID de l'abonné" },
+        "planName": { "type": "string", "required": true, "description": "Formule (PASS_MENSUEL_IVOIRE, PASS_ANNUEL_GOLD)" },
+        "startDate": { "type": "string", "required": true, "description": "Date d'activation" },
+        "expiryDate": { "type": "string", "required": true, "description": "Date d'expiration" },
+        "status": { "type": "string", "required": true, "description": "Statut (ACTIVE, EXPIRED, CANCELLED)" },
+        "perks": { "type": "string", "required": true, "description": "Avantages inclus (Accès Salon VIP, Wi-Fi 5G, IPTV Illimité)" }
+      }
+    },
+    "PlatformBanner": {
+      "collectionName": "platform_banners",
+      "description": "Bannières promotionnelles et annonces système diffusées sur la plateforme",
+      "fields": {
+        "title": { "type": "string", "required": true, "description": "Titre principal de la bannière" },
+        "subtitle": { "type": "string", "required": true, "description": "Sous-titre explicatif" },
+        "imageUrl": { "type": "string", "required": true, "description": "URL de l'image de bannière" },
+        "targetModule": { "type": "string", "required": true, "description": "Cible (ACCUEIL, TRANSPORT, HOTELLERIE, VISION, IPTV, AICORE, PROMOTIONS, PUBLICITE, SYSTEME)" },
+        "priority": { "type": "number", "required": true, "description": "Ordre de priorité (1 pour priorité haute)" },
+        "startDate": { "type": "string", "required": true, "description": "Date de début d'affichage (YYYY-MM-DD)" },
+        "endDate": { "type": "string", "required": true, "description": "Date de fin d'affichage (YYYY-MM-DD)" },
+        "ctaText": { "type": "string", "required": true, "description": "Texte du bouton d'action" },
+        "ctaUrl": { "type": "string", "required": true, "description": "Lien de redirection" },
+        "isActive": { "type": "boolean", "required": true, "description": "Statut d'activation" },
+        "clicksCount": { "type": "number", "required": true, "description": "Compteur de clics" },
+        "viewsCount": { "type": "number", "required": true, "description": "Compteur d'affichages" }
+      }
+    },
+    "ScanValidation": {
+      "collectionName": "scan_validations",
+      "description": "Historique des validations QR Code par les contrôleurs aux gares et réceptions",
+      "fields": {
+        "reservationId": { "type": "string", "required": true, "description": "ID de la réservation contrôlée" },
+        "scannedByUid": { "type": "string", "required": true, "description": "UID du contrôleur" },
+        "scannedAt": { "type": "string", "required": true, "description": "Date et heure du contrôle" },
+        "location": { "type": "string", "required": true, "description": "Gare ou hôtel (ex: Gare UTB Adjamé)" },
+        "validationResult": { "type": "string", "required": true, "description": "Résultat (VALID, ALREADY_USED, EXPIRED, INVALID_SIGNATURE)" }
+      }
+    },
+    "IPTVChannel": {
+      "collectionName": "iptv_channels",
+      "description": "Chaînes TV en direct, Radios FM et flux HLS haute capacité",
+      "fields": {
+        "name": { "type": "string", "required": true, "description": "Nom de la chaîne ou station" },
+        "type": { "type": "string", "required": true, "description": "Type de média (TV, RADIO, FILM, SERIES, DOCUMENTAIRE)" },
+        "category": { "type": "string", "required": true, "description": "Catégorie média" },
+        "streamUrl": { "type": "string", "required": true, "description": "URL du flux vidéo/audio HLS" },
+        "logoUrl": { "type": "string", "required": true, "description": "Logo ou affiche de la chaîne" },
+        "country": { "type": "string", "required": true, "description": "Pays d'origine" },
+        "language": { "type": "string", "required": true, "description": "Langue principale" },
+        "quality": { "type": "string", "required": true, "description": "Qualité de diffusion (4K, 1080p, 720p, SD)" },
+        "status": { "type": "string", "required": true, "description": "Statut de disponibilité (Actif, Inactif, Maintenance)" },
+        "playlistId": { "type": "string", "required": false, "description": "ID de la playlist source" },
+        "providerName": { "type": "string", "required": false, "description": "Nom du fournisseur source" },
+        "agencyId": { "type": "string", "required": false, "description": "Périmètre de diffusion (NATIONAL ou ID agence)" },
+        "tvgId": { "type": "string", "required": false, "description": "Identifiant EPG TVG-ID" },
+        "currentProgram": { "type": "string", "required": false, "description": "Programme EPG en cours" },
+        "viewsCount": { "type": "number", "required": false, "description": "Compteur de vues" },
+        "createdAt": { "type": "string", "required": true, "description": "Date d'ajout ISO" }
+      }
+    },
+    "IPTVPlaylist": {
+      "collectionName": "iptv_playlists",
+      "description": "Playlists et catalogues M3U/M3U8 importés",
+      "fields": {
+        "name": { "type": "string", "required": true, "description": "Nom de la playlist" },
+        "provider": { "type": "string", "required": true, "description": "Fournisseur" },
+        "format": { "type": "string", "required": true, "description": "Format (M3U, M3U8, Xtream Codes)" },
+        "sourceUrl": { "type": "string", "required": true, "description": "URL source ou Fichier Local" },
+        "totalChannels": { "type": "number", "required": true, "description": "Nombre total de chaînes" },
+        "status": { "type": "string", "required": true, "description": "Statut de la playlist" },
+        "lastUpdated": { "type": "string", "required": true, "description": "Dernière mise à jour ISO" },
+        "autoSync": { "type": "boolean", "required": true, "description": "Synchronisation automatique active" },
+        "agencyId": { "type": "string", "required": false, "description": "Périmètre agence" }
+      }
+    },
+    "IPTVLog": {
+      "collectionName": "iptv_logs",
+      "description": "Journaux d'audit et d'opérations IPTV haute capacité",
+      "fields": {
+        "timestamp": { "type": "string", "required": true, "description": "Horodatage de l'opération" },
+        "action": { "type": "string", "required": true, "description": "Type d'action (IMPORT, SYNC, DELETE, HEALTH_CHECK, RECONCILE, ERROR)" },
+        "details": { "type": "string", "required": true, "description": "Détails de l'opération" },
+        "status": { "type": "string", "required": true, "description": "Statut du journal (SUCCESS, WARNING, ERROR)" },
+        "channelsCount": { "type": "number", "required": false, "description": "Nombre de chaînes concernées" },
+        "playlistName": { "type": "string", "required": false, "description": "Nom de la playlist concernée" }
+      }
+    }
+  }
+}

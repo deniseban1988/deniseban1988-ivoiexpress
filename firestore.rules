@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for Auth & RBAC
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserData().role == 'SUPER_ADMIN';
+    }
+
+    function isAdminAgence() {
+      return isAuthenticated() && getUserData().role == 'ADMIN_AGENCE';
+    }
+
+    function isAdminHotel() {
+      return isAuthenticated() && getUserData().role == 'ADMIN_HOTEL';
+    }
+
+    function isVoyageur() {
+      return isAuthenticated() && getUserData().role == 'VOYAGEUR';
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId) || (isAdminAgence() && getUserData().agencyId == resource.data.agencyId);
+      allow create: if isAuthenticated(); // New users can create their profile
+      allow update: if isSuperAdmin() || (
+        isAuthenticated() && request.auth.uid == userId && 
+        request.resource.data.role == resource.data.role && 
+        request.resource.data.agencyId == resource.data.agencyId &&
+        request.resource.data.hotelId == resource.data.hotelId
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // 2. Reservations & Tickets
+    match /reservations/{reservationId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && (resource.data.userId == request.auth.uid || (isAdminAgence() && getUserData().agencyId == resource.data.agencyId)));
+      allow write: if isSuperAdmin() || (isAuthenticated() && (request.resource.data.userId == request.auth.uid || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId)));
+    }
+
+    // 3. Transport & Agencies
+    match /transport_agencies/{agencyId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    match /agencies/{agencyId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    match /transport_trips/{tripId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    // 4. Vehicles, Drivers & Fleet
+    match /vehicles/{vehicleId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    match /drivers/{driverId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    // 5. Cameras & Vision
+    match /cameras/{cameraId} {
+      allow read: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == resource.data.agencyId);
+      allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    // 6. Hotels & Rooms
+    match /hotels/{hotelId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || (isAdminHotel() && getUserData().hotelId == hotelId);
+    }
+
+    match /hotel_rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || (isAdminHotel() && getUserData().hotelId == resource.data.hotelId);
+    }
+
+    // 7. Banners
+    match /banners/{bannerId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // 8. IPTV Ecosystem
+    match /iptv_channels/{channelId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    match /iptv_playlists/{playlistId} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // 9. System & Logs
+    match /audit_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if isAuthenticated();
+    }
+
+    match /system_config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Default: Deny all
+    match /{document=**} {
+      allow read, write: if isSuperAdmin();
+    }
+  }
+}
+
