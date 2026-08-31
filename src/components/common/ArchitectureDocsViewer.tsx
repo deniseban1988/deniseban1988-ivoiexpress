@@ -185,7 +185,7 @@ export const ArchitectureDocsViewer: React.FC = () => {
     setIsSeedingFirestore(true);
     try {
       await seedInitialFirestoreData(force);
-      alert('✅ Les 9 collections Firestore de la base ivoirexpress-2026 ont été populées avec succès !');
+      alert('✅ Les 9 collections Firestore de la base studio-2569273626-e2093 ont été populées avec succès !');
     } catch (err: any) {
       alert(`⚠️ Erreur d'initialisation Firestore: ${err?.message || err}`);
     } finally {

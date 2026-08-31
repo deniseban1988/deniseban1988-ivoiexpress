@@ -1,3 +1,4 @@
+import { IPTVContentType } from '../../types/iptv';
 import { normalizeIPTVCategory } from './categoryNormalizer';
 
 export interface ParsedM3UChannel {
@@ -13,7 +14,7 @@ export interface ParsedM3UChannel {
   country: string;
   language: string;
   quality: string;
-  type: 'TV' | 'RADIO' | 'FILM' | 'SERIES' | 'DOCUMENTAIRE';
+  type: IPTVContentType;
   currentProgram?: string;
   nextProgram?: string;
 }
@@ -51,23 +52,83 @@ export function sanitizeStreamUrl(rawUrl: string): string | null {
 
 /**
  * Determines stream type based on category, extensions or group tags
+ * Ensures strict separation between Live (TV, Radio, Events) and VOD (Movies, Series, etc.)
  */
-function inferChannelType(name: string, group: string, streamUrl: string): 'TV' | 'RADIO' | 'FILM' | 'SERIES' | 'DOCUMENTAIRE' {
+export function inferChannelType(name: string, group: string, streamUrl: string): IPTVContentType {
   const combined = `${name} ${group}`.toLowerCase();
+  const urlLower = streamUrl.toLowerCase();
   
-  if (combined.includes('radio') || combined.includes('fm') || streamUrl.includes('.mp3') || streamUrl.includes('.aac')) {
+  // 1. RADIO (Live)
+  if (
+    combined.includes('radio') || 
+    combined.includes('fm') || 
+    urlLower.includes('/radio/') ||
+    urlLower.endsWith('.mp3') || 
+    urlLower.endsWith('.aac') ||
+    combined.includes('webradio') ||
+    combined.includes('audio direct')
+  ) {
     return 'RADIO';
   }
-  if (combined.includes('movie') || combined.includes('film') || combined.includes('vod') || streamUrl.includes('/movie/')) {
-    return 'FILM';
+
+  // 2. DIRECT EVENTS (Live)
+  if (
+    combined.includes('évènement') || 
+    combined.includes('evenement') || 
+    combined.includes('event') || 
+    combined.includes('ppv') || 
+    combined.includes('direct live') ||
+    combined.includes('live match')
+  ) {
+    return 'DIRECT_EVENT';
   }
-  if (combined.includes('series') || combined.includes('série') || streamUrl.includes('/series/')) {
+
+  // 3. SERIES (VOD)
+  if (
+    combined.includes('series') || 
+    combined.includes('série') || 
+    urlLower.includes('/series/') ||
+    combined.includes('saison') ||
+    combined.includes('episode') ||
+    combined.includes('épiosde') ||
+    /s\d{2}e\d{2}/i.test(combined)
+  ) {
     return 'SERIES';
   }
-  if (combined.includes('docu') || combined.includes('documentaire')) {
+
+  // 4. DESSIN ANIME / JEUNESSE (VOD if they are movies/episodes, but often categorized as VOD in IPTV lists)
+  // If the URL looks like a static file and it's in a kids category, it's VOD.
+  if (
+    (combined.includes('dessin animé') || combined.includes('dessin anime') || combined.includes('cartoon') || combined.includes('animation')) &&
+    (urlLower.includes('/movie/') || urlLower.includes('/series/') || urlLower.endsWith('.mp4') || urlLower.endsWith('.mkv'))
+  ) {
+    return 'DESSIN_ANIME';
+  }
+
+  // 5. DOCUMENTAIRE (VOD)
+  if (
+    (combined.includes('docu') || combined.includes('documentaire') || combined.includes('reportage')) &&
+    (urlLower.includes('/movie/') || urlLower.endsWith('.mp4') || urlLower.endsWith('.mkv'))
+  ) {
     return 'DOCUMENTAIRE';
   }
+
+  // 6. FILM / CINEMA (VOD)
+  if (
+    combined.includes('movie') || 
+    combined.includes('film') || 
+    combined.includes('vod') || 
+    combined.includes('cinéma') ||
+    combined.includes('cinema') ||
+    urlLower.includes('/movie/') ||
+    urlLower.endsWith('.mp4') ||
+    urlLower.endsWith('.mkv') ||
+    urlLower.endsWith('.avi')
+  ) {
+    return 'FILM';
+  }
   
+  // Default: TV (Live)
   return 'TV';
 }
 

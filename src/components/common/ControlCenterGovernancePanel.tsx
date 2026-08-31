@@ -135,7 +135,7 @@ export const ControlCenterGovernancePanel: React.FC = () => {
         generatedAt: new Date().toISOString(),
         dataSource: telemetry.dataSource,
         environment: 'Cloud Run Production',
-        firebaseProjectId: 'ai-studio-ivoirexpressnouv-9cd929fe-e6e5-4cc6-99a4-f40f1f5bdff4',
+        firebaseProjectId: 'studio-2569273626-e2093',
         realMetrics: {
           usersCount: telemetry.activeUsersCount,
           agenciesCount: telemetry.activeAgencies,

@@ -72,7 +72,7 @@ export const TravelerIPTV: React.FC<TravelerIPTVProps> = (props) => {
   const onRemoveHistoryItem = props.onRemoveHistoryItem || context.removeWatchHistoryItem;
 
   // Navigation Sub-Tabs
-  const [activeTab, setActiveTab] = useState<'home' | 'tv' | 'radio' | 'vod' | 'favorites' | 'history'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'live' | 'vod' | 'favorites' | 'history'>('home');
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -125,15 +125,11 @@ export const TravelerIPTV: React.FC<TravelerIPTVProps> = (props) => {
   const filteredContents = useMemo(() => {
     const safeFavs = favorites || [];
     
-    // Type constraint based on activeTab
-    let tabType: string | undefined = undefined;
-    if (activeTab === 'tv') tabType = 'TV';
-    else if (activeTab === 'radio') tabType = 'RADIO';
-    else if (activeTab === 'vod') tabType = 'FILM'; // or will be handled if needed
-
     let baseList = contents;
     if (activeTab === 'favorites') {
       baseList = (contents || []).filter((item) => safeFavs.includes(item.id));
+    } else if (activeTab === 'live') {
+      baseList = (contents || []).filter((item) => ['TV', 'RADIO', 'DIRECT_EVENT'].includes(item.type));
     } else if (activeTab === 'vod') {
       baseList = (contents || []).filter((item) => ['FILM', 'SERIES', 'DOCUMENTAIRE', 'DESSIN_ANIME'].includes(item.type));
     }
@@ -142,7 +138,7 @@ export const TravelerIPTV: React.FC<TravelerIPTVProps> = (props) => {
       searchQuery,
       category: selectedCategory === 'Tous' ? 'ALL' : selectedCategory,
       country: selectedCountry === 'Tous' ? 'ALL' : selectedCountry,
-      type: (activeTab === 'tv' ? 'TV' : activeTab === 'radio' ? 'RADIO' : 'ALL')
+      // No extra type filter here as it's already filtered in baseList
     });
   }, [contents, activeTab, searchQuery, selectedCategory, selectedCountry, favorites]);
 
@@ -297,31 +293,19 @@ export const TravelerIPTV: React.FC<TravelerIPTVProps> = (props) => {
             }`}
           >
             <Flame className="w-4 h-4" />
-            <span>Toutes les chaînes ({(contents?.length || 0).toLocaleString('fr-FR')})</span>
+            <span>Tous ({(contents?.length || 0).toLocaleString('fr-FR')})</span>
           </button>
 
           <button
-            onClick={() => handleTabSwitch('tv')}
+            onClick={() => handleTabSwitch('live')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === 'tv'
+              activeTab === 'live'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Tv className="w-4 h-4" />
-            <span>Chaînes TV ({(contents || []).filter((c) => c.type === 'TV').length.toLocaleString('fr-FR')})</span>
-          </button>
-
-          <button
-            onClick={() => handleTabSwitch('radio')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === 'radio'
-                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <RadioIcon className="w-4 h-4" />
-            <span>Radios FM ({(contents || []).filter((c) => c.type === 'RADIO').length.toLocaleString('fr-FR')})</span>
+            <span>📺 CHAÎNES LIVE ({(contents || []).filter((c) => ['TV', 'RADIO', 'DIRECT_EVENT'].includes(c.type)).length.toLocaleString('fr-FR')})</span>
           </button>
 
           <button
@@ -333,7 +317,7 @@ export const TravelerIPTV: React.FC<TravelerIPTVProps> = (props) => {
             }`}
           >
             <Clapperboard className="w-4 h-4" />
-            <span>Films & VOD ({(contents || []).filter((c) => ['FILM', 'SERIES', 'DOCUMENTAIRE', 'DESSIN_ANIME'].includes(c.type)).length.toLocaleString('fr-FR')})</span>
+            <span>🎬 VOD & FILMS ({(contents || []).filter((c) => ['FILM', 'SERIES', 'DOCUMENTAIRE', 'DESSIN_ANIME'].includes(c.type)).length.toLocaleString('fr-FR')})</span>
           </button>
 
           <button

@@ -294,20 +294,24 @@ export function normalizeIPTVCategory(
       return 'Actualités';
     }
     // Cinema heuristics
-    if (fullText.includes('cine') || fullText.includes('movie') || fullText.includes('film') || fullText.includes('action') || urlLower.includes('/movie/')) {
+    if (fullText.includes('cine') || fullText.includes('movie') || fullText.includes('film') || fullText.includes('action') || urlLower.includes('/movie/') || urlLower.endsWith('.mp4') || urlLower.endsWith('.mkv')) {
       return 'Cinéma';
     }
     // Series heuristics
-    if (fullText.includes('serie') || urlLower.includes('/series/')) {
+    if (fullText.includes('serie') || urlLower.includes('/series/') || fullText.includes('saison') || fullText.includes('episode')) {
       return 'Séries';
     }
     // Kids heuristics
-    if (fullText.includes('kid') || fullText.includes('disney') || fullText.includes('gulli') || fullText.includes('cartoon') || fullText.includes('anime')) {
+    if (fullText.includes('kid') || fullText.includes('disney') || fullText.includes('gulli') || fullText.includes('cartoon') || fullText.includes('anime') || fullText.includes('jeunesse')) {
       return 'Jeunesse';
     }
     // Radio heuristics
     if (channelType === 'RADIO' || fullText.includes('radio') || fullText.includes('fm') || urlLower.endsWith('.mp3') || urlLower.endsWith('.aac')) {
       return 'Radio Local';
+    }
+    // Event heuristics
+    if (channelType === 'DIRECT_EVENT' || fullText.includes('event') || fullText.includes('évènement') || fullText.includes('evenement')) {
+      return 'Sport'; // Usually events are sports
     }
     // Religion heuristics
     if (fullText.includes('al bayane') || fullText.includes('emci') || fullText.includes('priere') || fullText.includes('eglise') || fullText.includes('islam') || fullText.includes('church')) {
@@ -318,6 +322,7 @@ export function normalizeIPTVCategory(
     if (channelType === 'FILM') return 'Cinéma';
     if (channelType === 'SERIES') return 'Séries';
     if (channelType === 'DOCUMENTAIRE') return 'Documentaires';
+    if (channelType === 'DESSIN_ANIME') return 'Jeunesse';
     return 'Divertissement';
   }
 

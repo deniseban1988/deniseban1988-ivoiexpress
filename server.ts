@@ -3,17 +3,88 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 dotenv.config();
 
+// Configuration des bases de données par environnement
+const isProduction = process.env.NODE_ENV === 'production';
+const FIRESTORE_DB_ID = isProduction 
+  ? 'ai-studio-ivoirexpressfabi-76a4a3d0-f988-4d5a-95c0-db2daf7a6b58' 
+  : '(default)';
+
+/**
+ * Helper pour obtenir l'instance Firestore correcte selon l'environnement
+ */
+const getDb = () => {
+  const app = getApps()[0];
+  return FIRESTORE_DB_ID === '(default)' ? getFirestore(app) : getFirestore(app, FIRESTORE_DB_ID);
+};
+
 // Initialize Firebase Admin SDK
 if (getApps().length === 0) {
-  initializeApp({
-    projectId: process.env.FIREBASE_PROJECT_ID || 'ai-studio-ivoirexpressnouv-9cd929fe'
-  });
+  const firebaseProjectIdEnv = process.env.FIREBASE_PROJECT_ID;
+  
+  if (!firebaseProjectIdEnv) {
+    console.error("FATAL ERROR: FIREBASE_PROJECT_ID is not defined in environment variables.");
+    process.exit(1);
+  }
+
+  try {
+    const serviceAccount = JSON.parse(firebaseProjectIdEnv);
+    // Fix private key formatting (newlines)
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key
+        .replace('-----DEBUT PRIVÉ CLÉ-----', '-----BEGIN PRIVATE KEY-----')
+        .replace('-----END CLÉ PRIVÉE-----', '-----END PRIVATE KEY-----')
+        .replace(/\\n/g, '\n');
+    }
+
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+    console.log(`Firebase Admin initialized for project: ${serviceAccount.project_id} | DB: ${FIRESTORE_DB_ID} (${isProduction ? 'PROD' : 'DEV'})`);
+  } catch (err: any) {
+    console.error(`FATAL ERROR: Failed to parse or initialize Firebase Admin: ${err.message}`);
+    process.exit(1);
+  }
+
+  // 🚀 BOOTSTRAP: Ensure Super Admin exists with correct role
+  const bootstrapSuperAdmin = async () => {
+    const adminEmail = 'fabriceallechi@gmail.com';
+    try {
+      const userRecord = await getAuth().getUserByEmail(adminEmail);
+      const db = getDb();
+      const userRef = db.collection('users').doc(userRecord.uid);
+      const docSnap = await userRef.get();
+
+      if (!docSnap.exists) {
+        console.log(`[BOOTSTRAP] Creating Firestore profile for Super Admin: ${adminEmail}`);
+        await userRef.set({
+          id: userRecord.uid,
+          fullName: 'Fabrice Allechi',
+          email: adminEmail,
+          role: 'SUPER_ADMIN',
+          status: 'Actif',
+          createdAt: new Date().toISOString()
+        });
+      } else if (docSnap.data()?.role !== 'SUPER_ADMIN') {
+        console.log(`[BOOTSTRAP] Promoting user to SUPER_ADMIN: ${adminEmail}`);
+        await userRef.update({ role: 'SUPER_ADMIN' });
+      } else {
+        console.log(`[BOOTSTRAP] Super Admin ${adminEmail} is already correctly configured.`);
+      }
+    } catch (err: any) {
+      if (err.code === 'auth/user-not-found') {
+        console.log(`[BOOTSTRAP] Warning: Super Admin ${adminEmail} not found in Firebase Auth yet.`);
+      } else {
+        console.error(`[BOOTSTRAP] Error: ${err.message}`);
+      }
+    }
+  };
+  bootstrapSuperAdmin();
 }
 
 const app = express();
@@ -43,8 +114,10 @@ const authenticate = async (req: AuthenticatedRequest, res: Response, next: Next
   try {
     const decodedToken = await getAuth().verifyIdToken(idToken);
     
+    const db = getDb();
+
     // Fetch full user profile from Firestore to get role and agencyId/hotelId
-    const userDoc = await getFirestore().collection('users').doc(decodedToken.uid).get();
+    const userDoc = await db.collection('users').doc(decodedToken.uid).get();
     
     if (!userDoc.exists) {
       return res.status(403).json({ 
@@ -110,7 +183,7 @@ app.get("/api/users/me", authenticate, (req: AuthenticatedRequest, res) => {
 app.get("/api/users", authenticate, authorize(['SUPER_ADMIN', 'ADMIN_AGENCE']), async (req: AuthenticatedRequest, res) => {
   try {
     const { page = 1, limit = 20, agencyId, role, search } = req.query;
-    const db = getFirestore();
+    const db = getDb();
     let queryRef: any = db.collection('users');
 
     // Multi-tenancy isolation
@@ -164,7 +237,7 @@ app.get("/api/users/:uid", authenticate, async (req: AuthenticatedRequest, res) 
     // Permission check
     if (req.user.role !== 'SUPER_ADMIN' && req.user.uid !== uid) {
       // Check if Admin Agence is viewing user from their agency
-      const userDoc = await getFirestore().collection('users').doc(uid).get();
+      const userDoc = await getDb().collection('users').doc(uid).get();
       if (!userDoc.exists) return sendResponse(res, false, null, 'Utilisateur introuvable', 'NOT_FOUND', 404);
       
       const userData = userDoc.data();
@@ -174,7 +247,7 @@ app.get("/api/users/:uid", authenticate, async (req: AuthenticatedRequest, res) 
       return sendResponse(res, true, userData);
     }
 
-    const userDoc = await getFirestore().collection('users').doc(uid).get();
+    const userDoc = await getDb().collection('users').doc(uid).get();
     if (!userDoc.exists) return sendResponse(res, false, null, 'Utilisateur introuvable', 'NOT_FOUND', 404);
     
     sendResponse(res, true, userDoc.data());
@@ -204,12 +277,12 @@ app.patch("/api/users/:uid", authenticate, async (req: AuthenticatedRequest, res
       }
     }
 
-    await getFirestore().collection('users').doc(uid).update({
+    await getDb().collection('users').doc(uid).update({
       ...updates,
       updatedAt: new Date().toISOString()
     });
 
-    const updatedDoc = await getFirestore().collection('users').doc(uid).get();
+    const updatedDoc = await getDb().collection('users').doc(uid).get();
     sendResponse(res, true, updatedDoc.data(), 'Profil mis à jour avec succès');
   } catch (error: any) {
     sendResponse(res, false, null, error.message, 'INTERNAL_ERROR', 500);
@@ -224,7 +297,7 @@ app.patch("/api/users/:uid", authenticate, async (req: AuthenticatedRequest, res
 app.get("/api/transport/trips", authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { departure, destination, date, page = 1, limit = 10 } = req.query;
-    const db = getFirestore();
+    const db = getDb();
     let queryRef: any = db.collection('transport_trips');
 
     if (departure) queryRef = queryRef.where('departureCity', '==', departure);
@@ -250,7 +323,7 @@ app.get("/api/transport/trips", authenticate, async (req: AuthenticatedRequest, 
 // GET /api/transport/agencies - List agencies
 app.get("/api/transport/agencies", authenticate, async (req, res) => {
   try {
-    const snapshot = await getFirestore().collection('transport_agencies').get();
+    const snapshot = await getDb().collection('transport_agencies').get();
     const agencies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     sendResponse(res, true, agencies);
   } catch (error: any) {
@@ -265,7 +338,7 @@ app.get("/api/transport/agencies", authenticate, async (req, res) => {
 // GET /api/hotels - List hotels
 app.get("/api/hotels", authenticate, async (req, res) => {
   try {
-    const snapshot = await getFirestore().collection('hotels').get();
+    const snapshot = await getDb().collection('hotels').get();
     const hotels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     sendResponse(res, true, hotels);
   } catch (error: any) {
@@ -277,7 +350,7 @@ app.get("/api/hotels", authenticate, async (req, res) => {
 app.get("/api/hotels/:hotelId/rooms", authenticate, async (req, res) => {
   try {
     const { hotelId } = req.params;
-    const snapshot = await getFirestore().collection('hotel_rooms').where('hotelId', '==', hotelId).get();
+    const snapshot = await getDb().collection('hotel_rooms').where('hotelId', '==', hotelId).get();
     const rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     sendResponse(res, true, rooms);
   } catch (error: any) {
@@ -293,7 +366,7 @@ app.get("/api/hotels/:hotelId/rooms", authenticate, async (req, res) => {
 app.get("/api/iptv/channels", authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 50, category } = req.query;
-    const db = getFirestore();
+    const db = getDb();
     let queryRef: any = db.collection('iptv_channels');
 
     if (category) queryRef = queryRef.where('groupTitle', '==', category);
@@ -402,7 +475,7 @@ app.post("/api/db/connection-check", authenticate, authorize(['SUPER_ADMIN']), a
         provider: 'firestore',
         engineName: 'Google Cloud Firestore (NoSQL Document Store)',
         status: 'CONNECTED',
-        projectName: process.env.FIREBASE_PROJECT_ID || 'ai-studio-ivoirexpressnouv-9cd929fe',
+        projectName: process.env.FIREBASE_PROJECT_ID || 'studio-2569273626-e2093',
         databaseId: '(default)',
         environment: 'Production Cloud Run',
         latencyMs,

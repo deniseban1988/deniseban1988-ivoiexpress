@@ -7,24 +7,33 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function hasRole(role) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
     function isSuperAdmin() {
-      return isAuthenticated() && getUserData().role == 'SUPER_ADMIN';
+      return isAuthenticated() && (
+        request.auth.token.email.matches('(?i)fabriceallechi@gmail.com') || 
+        hasRole('SUPER_ADMIN')
+      );
+    }
+
+    match /{document=**} {
+      allow read, write: if isSuperAdmin();
     }
 
     function isAdminAgence() {
-      return isAuthenticated() && getUserData().role == 'ADMIN_AGENCE';
+      return hasRole('ADMIN_AGENCE');
     }
 
     function isAdminHotel() {
-      return isAuthenticated() && getUserData().role == 'ADMIN_HOTEL';
+      return hasRole('ADMIN_HOTEL');
     }
 
     function isVoyageur() {
-      return isAuthenticated() && getUserData().role == 'VOYAGEUR';
+      return hasRole('VOYAGEUR');
     }
 
     // 1. Users collection
@@ -48,18 +57,23 @@ service cloud.firestore {
 
     // 3. Transport & Agencies
     match /transport_agencies/{agencyId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
     match /agencies/{agencyId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
     match /transport_trips/{tripId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    match /partner_registry/{id} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
     }
 
     // 4. Vehicles, Drivers & Fleet
@@ -73,49 +87,118 @@ service cloud.firestore {
       allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
     }
 
-    // 5. Cameras & Vision
+    // 5. Cameras & Vision (Supporting both camera and cameras names)
     match /cameras/{cameraId} {
+      allow read: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == resource.data.agencyId);
+      allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
+    }
+
+    match /camera/{cameraId} {
       allow read: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == resource.data.agencyId);
       allow write: if isSuperAdmin() || (isAdminAgence() && getUserData().agencyId == request.resource.data.agencyId);
     }
 
     // 6. Hotels & Rooms
     match /hotels/{hotelId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin() || (isAdminHotel() && getUserData().hotelId == hotelId);
     }
 
     match /hotel_rooms/{roomId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin() || (isAdminHotel() && getUserData().hotelId == resource.data.hotelId);
     }
 
     // 7. Banners
+    match /platform_banners/{bannerId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
     match /banners/{bannerId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
     // 8. IPTV Ecosystem
     match /iptv_channels/{channelId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /iptv/{contentId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /iptv_contents/{contentId} {
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
     match /iptv_playlists/{playlistId} {
-      allow read: if isSuperAdmin();
+      allow read: if true;
       allow write: if isSuperAdmin();
     }
 
-    // 9. System & Logs
+    match /iptv_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if isAuthenticated();
+    }
+
+    match /iptv_settings/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    match /iptv_notifications/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // 9. System, Governance & Logs
     match /audit_logs/{logId} {
       allow read: if isSuperAdmin();
       allow write: if isAuthenticated();
     }
 
     match /system_config/{configId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /notifications/{id} {
       allow read: if isAuthenticated();
       allow write: if isSuperAdmin();
+    }
+
+    match /vip_subscriptions/{id} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isSuperAdmin();
+    }
+
+    match /scan_validations/{id} {
+      allow read: if isSuperAdmin() || isAdminAgence();
+      allow write: if isAuthenticated();
+    }
+
+    match /system_health/{id} {
+      allow read: if isSuperAdmin();
+      allow write: if isAuthenticated(); // Governance engine writes probes
+    }
+
+    match /media_library/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    match /_diagnostic_tests/{id} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if isAuthenticated();
     }
 
     // Default: Deny all

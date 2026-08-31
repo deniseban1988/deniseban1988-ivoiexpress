@@ -1,4 +1,4 @@
-import { db, auth, isFirebaseConfigured } from './firebase';
+import { db, auth, isFirebaseConfigured, FIRESTORE_DB_ID } from './firebase';
 import {
   collection,
   doc,
@@ -186,8 +186,8 @@ export async function runFirestoreDiagnostic(): Promise<FirestoreDiagnosticRepor
   const recommendations: string[] = [];
   const user = auth?.currentUser;
 
-  const projectId = firebaseConfigJson.projectId || 'ivoirexpress-2026';
-  const databaseId = (firebaseConfigJson as any).firestoreDatabaseId || '(default)';
+  const projectId = firebaseConfigJson.projectId || 'studio-2569273626-e2093';
+  const databaseId = FIRESTORE_DB_ID;
   const environment = process.env.NODE_ENV === 'production' ? 'Production' : 'Développement (Cloud Live)';
 
   // Check 1: Firebase SDK Initialization

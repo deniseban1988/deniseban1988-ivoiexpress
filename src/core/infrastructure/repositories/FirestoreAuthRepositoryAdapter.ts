@@ -71,10 +71,32 @@ export class FirestoreAuthRepositoryAdapter implements IAuthRepository {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, identifier, password);
       const uid = userCredential.user.uid;
-      const userProfile = await this.findUserById(uid);
+      let userProfile = await this.findUserById(uid);
       
       if (!userProfile) {
-        throw new Error("Compte d'authentification valide, mais profil utilisateur introuvable dans la base de données.");
+        // 🚀 AUTO-PROVISIONING: If profile is missing but Auth is valid
+        // Special check for Super Admin or any user on first login in new project
+        console.log(`[Auth] Profile missing for UID: ${uid}. Attempting auto-provisioning...`);
+        
+        const email = userCredential.user.email || identifier;
+        const isSuperAdmin = email === 'fabriceallechi@gmail.com';
+        
+        const newUser: UserAccount = {
+          id: uid,
+          fullName: userCredential.user.displayName || (isSuperAdmin ? 'Fabrice Allechi' : 'Utilisateur IVOIReXpress'),
+          email: email,
+          phone: userCredential.user.phoneNumber || '',
+          role: isSuperAdmin ? 'SUPER_ADMIN' : 'VOYAGEUR',
+          status: 'ACTIVE',
+          avatarUrl: userCredential.user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          failedLoginAttempts: 0,
+          isLocked: false,
+          createdAt: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, 'users', uid), newUser);
+        userProfile = newUser;
+        console.log(`[Auth] Profile auto-provisioned successfully for ${email}`);
       }
       
       return userProfile;

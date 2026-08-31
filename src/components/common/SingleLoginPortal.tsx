@@ -55,7 +55,7 @@ export const SingleLoginPortal: React.FC<SingleLoginPortalProps> = ({
   // Login Form States
   const [selectedRole, setSelectedRole] = useState<'VOYAGEUR' | 'SUPER_ADMIN' | 'ADMIN_AGENCE' | 'ADMIN_HOTEL' | 'DRIVER'>('VOYAGEUR');
   const [identifier, setIdentifier] = useState<string>('koffi.voyageur@gmail.com');
-  const [password, setPassword] = useState<string>('Password123!');
+  const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
   const [enableMfaChallenge, setEnableMfaChallenge] = useState<boolean>(false);
@@ -96,7 +96,8 @@ export const SingleLoginPortal: React.FC<SingleLoginPortalProps> = ({
     } else {
       setSelectedRole('SUPER_ADMIN');
       setIdentifier('fabriceallechi@gmail.com');
-      setPassword('Scofield2');
+      // 🔐 SECURITY FIX: Password must be entered manually
+      setPassword('');
     }
   };
 
@@ -107,7 +108,8 @@ export const SingleLoginPortal: React.FC<SingleLoginPortalProps> = ({
     setSuccessMsg(null);
     if (role === 'SUPER_ADMIN') {
       setIdentifier('fabriceallechi@gmail.com');
-      setPassword('Scofield2');
+      // 🔐 SECURITY FIX: Password must be entered manually
+      setPassword('');
     } else if (role === 'ADMIN_AGENCE') {
       setIdentifier('admin.utb@ivoirexpress.ci');
       setPassword('Password123!');

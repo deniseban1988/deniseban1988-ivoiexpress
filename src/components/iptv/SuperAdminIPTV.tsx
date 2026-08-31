@@ -820,11 +820,13 @@ export const SuperAdminIPTV: React.FC<SuperAdminIPTVProps> = (props) => {
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-orange-500"
                 >
                   <option value="ALL">Tous les types</option>
-                  <option value="TV">TV Direct</option>
-                  <option value="RADIO">Radio</option>
-                  <option value="FILM">Film VOD</option>
-                  <option value="SERIES">Série</option>
-                  <option value="DOCUMENTAIRE">Documentaire</option>
+                  <option value="TV">📺 TV Direct (LIVE)</option>
+                  <option value="RADIO">📻 Radio (LIVE)</option>
+                  <option value="DIRECT_EVENT">🏟️ Événement (LIVE)</option>
+                  <option value="FILM">🎬 Film (VOD)</option>
+                  <option value="SERIES">🍿 Série (VOD)</option>
+                  <option value="DOCUMENTAIRE">🌍 Documentaire (VOD)</option>
+                  <option value="DESSIN_ANIME">🎨 Dessin Animé (VOD)</option>
                 </select>
               </div>
 

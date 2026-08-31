@@ -52,6 +52,7 @@ import {
   FirestoreErrorInfo,
   OperationType
 } from '../../lib/firestoreDiagnostics';
+import { FIRESTORE_DB_ID } from '../../lib/firebase';
 import firebaseConfigJson from '../../../firebase-applet-config.json';
 
 export type SgbdProviderId = 'firestore' | 'postgres' | 'cloudsql' | 'supabase' | 'mysql' | 'inmemory';
@@ -86,8 +87,8 @@ export const SgbdConnectionManagerPanel: React.FC = () => {
       provider: 'firestore',
       engineName: 'Google Cloud Firestore (NoSQL Realtime Document Engine)',
       status: 'CONNECTED',
-      projectName: firebaseConfigJson.projectId || 'ai-studio-ivoirexpressnouv-9cd929fe',
-      databaseId: (firebaseConfigJson as any).firestoreDatabaseId || '(default)',
+      projectName: firebaseConfigJson.projectId || 'studio-2569273626-e2093',
+      databaseId: FIRESTORE_DB_ID,
       environment: 'Production Cloud Run',
       latencyMs: 14,
       version: 'v1.1.0 (Google Gen2 Firestore SDK)',

@@ -50,7 +50,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
 
   // Form states for login
   const [identifier, setIdentifier] = useState<string>('koffi.voyageur@gmail.com');
-  const [password, setPassword] = useState<string>('Password123!');
+  const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   // Form states for traveler registration
@@ -110,6 +110,16 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   const handleQuickDemoLogin = async (demoEmail: string) => {
     setErrorMsg(null);
     setIsSubmitting(true);
+    
+    // 🔐 SECURITY: Super Admin must always type their password.
+    if (demoEmail === 'fabriceallechi@gmail.com') {
+      setIdentifier(demoEmail);
+      setPassword('');
+      setErrorMsg("Sécurité : Le mot de passe Super Admin ne peut pas être pré-rempli. Veuillez le saisir manuellement.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await authUseCases.login(demoEmail, 'Password123!');
       setSuccessMsg(`Connexion rapide sous ${result.session.user.fullName}`);

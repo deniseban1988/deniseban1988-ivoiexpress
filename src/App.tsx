@@ -147,13 +147,11 @@ function AppContent() {
     setShowAuthModal(false);
   };
 
+  // 🔐 SECURITY FIX: Removed insecure quick login. 
+  // All users must now authenticate via the secure login portal.
   const handleQuickRoleLogin = async (email: string) => {
-    try {
-      const res = await authUseCases.login(email, 'Password123!');
-      handleLoginSuccess(res.session, res.redirectTab);
-    } catch (err: any) {
-      console.error(err);
-    }
+    console.warn("Security: Quick login with hardcoded password is disabled. Redirecting to portal.");
+    setShowAuthModal(true);
   };
 
   const handleLogout = async () => {

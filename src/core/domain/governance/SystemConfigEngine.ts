@@ -836,7 +836,7 @@ export class SystemConfigEngine {
         category: 'CLOUD',
         name: 'Firebase Cloud Messaging (FCM Push)',
         url: 'https://fcm.googleapis.com/fcm/send',
-        publicKey: 'ai-studio-ivoirexpressnouv-9cd929fe',
+        publicKey: 'studio-2569273626-e2093',
         privateKey: '••••••••••••••••••••',
         secretToken: 'FIREBASE_SERVER_KEY',
         version: 'v1',

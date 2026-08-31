@@ -40,6 +40,7 @@ import {
   parseM3UContent,
   fetchAndParseM3UUrl,
   ParsedM3UChannel,
+  inferChannelType,
   smartDeduplicateChannels,
   sanitizeStreamUrl
 } from '../../lib/iptv/m3uParser';
@@ -313,7 +314,7 @@ export const IPTVProviderComponent: React.FC<{ children: React.ReactNode }> = ({
                 legacyLoaded.push({
                   id: docSnap.id,
                   name: data.name || data.title || 'Chaîne',
-                  type: data.type || (data.category === 'SPORT' || data.category === 'CHAINE_NATIONALE' ? 'TV' : 'FILM'),
+                  type: data.type || inferChannelType(data.name || data.title || '', data.category || '', data.streamUrl || ''),
                   category: data.category || 'Général',
                   streamUrl: data.streamUrl || '',
                   logoUrl: data.logoUrl || data.posterUrl || '',
@@ -1213,7 +1214,7 @@ export const IPTVProviderComponent: React.FC<{ children: React.ReactNode }> = ({
             collected.set(docSnap.id, {
               id: docSnap.id,
               name: d.name || d.title || 'Chaîne',
-              type: d.type || 'TV',
+              type: d.type || inferChannelType(d.name || d.title || '', d.category || '', d.streamUrl || ''),
               category: d.category || 'Général',
               streamUrl: d.streamUrl || '',
               logoUrl: d.logoUrl || d.posterUrl || '',

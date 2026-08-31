@@ -39,7 +39,7 @@ import {
   ArrowRight,
   Code
 } from 'lucide-react';
-import { db, auth, isFirebaseConfigured, seedInitialFirestoreData } from '../../lib/firebase';
+import { db, auth, isFirebaseConfigured, seedInitialFirestoreData, FIRESTORE_DB_ID } from '../../lib/firebase';
 import {
   collection,
   onSnapshot,
@@ -861,10 +861,10 @@ export const FirestoreConsolePanel: React.FC = () => {
             <span className="text-slate-400 text-[10px] uppercase block tracking-wider font-semibold">Projet Firebase</span>
             <div className="flex items-center space-x-1.5 text-white font-bold truncate">
               <Server className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="truncate">{firebaseConfigJson.projectId || 'ai-studio-ivoirexpressnouv-9cd929fe'}</span>
+              <span className="truncate">{firebaseConfigJson.projectId || 'studio-2569273626-e2093'}</span>
             </div>
             <span className="text-[10px] text-slate-500 block truncate">
-              BDD: {(firebaseConfigJson as any).firestoreDatabaseId || '(default)'}
+              BDD: {FIRESTORE_DB_ID}
             </span>
           </div>
 
