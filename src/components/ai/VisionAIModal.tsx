@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Camera } from '../../types';
 import { Sparkles, ShieldAlert, CheckCircle2, X, Eye, RefreshCw } from 'lucide-react';
+import { getApiUrl } from '../../lib/api';
 
 interface VisionAIModalProps {
   camera: Camera | null;
@@ -16,7 +17,7 @@ export const VisionAIModal: React.FC<VisionAIModalProps> = ({ camera, onClose })
   const handleRunAnalysis = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/ai/vision-analyze', {
+      const res = await fetch(getApiUrl('/api/ai/vision-analyze'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

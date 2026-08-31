@@ -1,6 +1,7 @@
 import { SeatLockResponse, BoardingScanResult, VehiclePhysicalLayout } from '../types/seat3d';
 import { MASTER_VEHICLE_LAYOUTS } from '../data/transportData';
 import { auth } from '../lib/firebase';
+import { getApiUrl } from '../lib/api';
 
 // In-memory client cache for lock simulation when running offline/preview
 const clientSideSeatLocks: Record<string, { seatNumbers: number[]; expiresAt: number; sessionId: string }> = {};
@@ -25,7 +26,7 @@ export const TransportApiService = {
   ): Promise<SeatLockResponse> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transport/seats/lock', {
+      const response = await fetch(getApiUrl('/api/transport/seats/lock'), {
         method: 'POST',
         headers,
         body: JSON.stringify({ tripId, seatNumbers, userId: auth.currentUser?.uid || lockSessionId, durationSeconds })
@@ -88,7 +89,7 @@ export const TransportApiService = {
   ): Promise<{ success: boolean; message: string }> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transport/seats/unlock', {
+      const response = await fetch(getApiUrl('/api/transport/seats/unlock'), {
         method: 'POST',
         headers,
         body: JSON.stringify({ tripId, seatNumbers, userId: auth.currentUser?.uid || lockSessionId })
@@ -112,7 +113,7 @@ export const TransportApiService = {
   async verifyBoardingQR(qrData: string, currentTripId?: string): Promise<BoardingScanResult> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transport/boarding/verify-qr', {
+      const response = await fetch(getApiUrl('/api/transport/boarding/verify-qr'), {
         method: 'POST',
         headers,
         body: JSON.stringify({ qrPayload: qrData, currentTripId })
@@ -178,7 +179,7 @@ export const TransportApiService = {
   async getVehicleLayouts(): Promise<VehiclePhysicalLayout[]> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transport/vehicle-layouts', {
+      const response = await fetch(getApiUrl('/api/transport/vehicle-layouts'), {
         headers
       });
       if (response.ok) {

@@ -1,5 +1,6 @@
 import { IPTVContentType } from '../../types/iptv';
 import { normalizeIPTVCategory } from './categoryNormalizer';
+import { getApiUrl } from '../api';
 
 export interface ParsedM3UChannel {
   id: string;
@@ -446,7 +447,7 @@ export async function fetchAndParseM3UUrl(url: string, playlistName: string): Pr
 
   // 1. Try local server-side proxy route first (bypasses browser CORS & network restrictions)
   try {
-    const serverProxyRes = await fetch('/api/iptv/m3u/parse-proxy', {
+    const serverProxyRes = await fetch(getApiUrl('/api/iptv/m3u/parse-proxy'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: sanitizedUrl, playlistName })

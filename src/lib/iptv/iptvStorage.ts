@@ -1,4 +1,5 @@
 import { IPTVContentItem, IPTVPlaylist } from '../../types/iptv';
+import { getApiUrl } from '../api';
 
 const DB_NAME = 'ivoirexpress_iptv_db';
 const DB_VERSION = 1;
@@ -266,7 +267,7 @@ export async function rebuildChannelsInIndexedDB(channels: IPTVContentItem[]): P
  * Exports channels array to valid M3U string for backup
  */
 export function exportChannelsToM3U(channels: IPTVContentItem[], playlistTitle = 'Exportation_IVOIREXPRESS_IPTV'): string {
-  let m3u = `#EXTM3U x-tvg-url="https://epg.ivoirexpress.ci/guide.xml"\n`;
+  let m3u = `#EXTM3U x-tvg-url="${getApiUrl('/api/iptv/epg/guide.xml')}"\n`;
   m3u += `#PLAYLIST:${playlistTitle}\n\n`;
 
   for (const c of channels) {

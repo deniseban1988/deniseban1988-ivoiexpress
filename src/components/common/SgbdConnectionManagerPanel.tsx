@@ -54,6 +54,7 @@ import {
 } from '../../lib/firestoreDiagnostics';
 import { FIRESTORE_DB_ID } from '../../lib/firebase';
 import firebaseConfigJson from '../../../firebase-applet-config.json';
+import { getApiUrl } from '../../lib/api';
 
 export type SgbdProviderId = 'firestore' | 'postgres' | 'cloudsql' | 'supabase' | 'mysql' | 'inmemory';
 
@@ -297,7 +298,7 @@ export const SgbdConnectionManagerPanel: React.FC = () => {
     setLastError(null);
     try {
       // Call server endpoint or Firestore test
-      const res = await fetch('/api/db/connection-check', {
+      const res = await fetch(getApiUrl('/api/db/connection-check'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: selectedProvider })
@@ -449,7 +450,7 @@ export const SgbdConnectionManagerPanel: React.FC = () => {
   const handleGenerateReport = async () => {
     setIsTesting(true);
     try {
-      const res = await fetch('/api/db/connection-check', {
+      const res = await fetch(getApiUrl('/api/db/connection-check'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: selectedProvider })

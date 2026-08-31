@@ -7,6 +7,7 @@ import {
   IPTVWatchHistoryItem,
   IPTVAnalyticsData
 } from '../types/iptv';
+import { getApiUrl } from '../lib/api';
 
 export const INITIAL_IPTV_SETTINGS: IPTVGlobalSettings = {
   moduleEnabled: true,
@@ -455,7 +456,7 @@ export const INITIAL_IPTV_PLAYLISTS: IPTVPlaylist[] = [
     name: 'Bouquet RTI & Chaînes Nationales Ivoiriennes',
     provider: 'RTI Direct Server',
     format: 'M3U8',
-    sourceUrl: 'https://iptv.ivoirexpress.ci/m3u/national-ci.m3u8',
+    sourceUrl: getApiUrl('/api/iptv/m3u/national-ci.m3u8'),
     totalChannels: 12,
     status: 'Actif',
     lastUpdated: '2026-08-02 07:30',
@@ -466,7 +467,7 @@ export const INITIAL_IPTV_PLAYLISTS: IPTVPlaylist[] = [
     name: 'Bouquet Premium Canal+ Afrique & Cinema',
     provider: 'Canal+ Distribution',
     format: 'Xtream Codes',
-    sourceUrl: 'https://iptv.ivoirexpress.ci/xtream/canal-afrique',
+    sourceUrl: getApiUrl('/api/iptv/xtream/canal-afrique'),
     totalChannels: 45,
     status: 'Actif',
     lastUpdated: '2026-08-01 23:15',
@@ -477,7 +478,7 @@ export const INITIAL_IPTV_PLAYLISTS: IPTVPlaylist[] = [
     name: 'Flux Radios FM Abidjan & Régions',
     provider: 'Orange CI Streaming Hub',
     format: 'M3U',
-    sourceUrl: 'https://iptv.ivoirexpress.ci/m3u/radios-fm.m3u',
+    sourceUrl: getApiUrl('/api/iptv/m3u/radios-fm.m3u'),
     totalChannels: 18,
     status: 'Actif',
     lastUpdated: '2026-08-02 05:00',

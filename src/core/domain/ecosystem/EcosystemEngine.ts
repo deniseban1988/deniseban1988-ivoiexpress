@@ -1,3 +1,5 @@
+import { getApiUrl } from '../../../lib/api';
+
 export interface IPaymentConnectorInfo {
   id: string;
   name: string;
@@ -410,7 +412,7 @@ export class EcosystemEngine {
           success: true,
           reservationId: 'RES-99021',
           status: 'CONFIRMED',
-          ticketQrUrl: 'https://ivoirexpress.ci/tickets/RES-99021.png'
+          ticketQrUrl: getApiUrl('/api/tickets/RES-99021.png')
         }, null, 2)
       },
       {

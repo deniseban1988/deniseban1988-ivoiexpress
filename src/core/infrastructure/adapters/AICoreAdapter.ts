@@ -2,6 +2,7 @@ import { IAICoreOrchestratorPort } from '../../ports/aicore.ports';
 import { AIAssistantType, AISmartAction, AIMemoryEntry } from '../../../types/aicore';
 import { UserRole } from '../../../types';
 import { auth } from '../../../lib/firebase';
+import { getApiUrl } from '../../../lib/api';
 
 export class AICoreOrchestratorAdapter implements IAICoreOrchestratorPort {
   private async getAuthHeaders() {
@@ -20,7 +21,7 @@ export class AICoreOrchestratorAdapter implements IAICoreOrchestratorPort {
   ): Promise<{ assistantName: string; reply: string; proposedAction?: AISmartAction }> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch('/api/ai/assistant', {
+      const response = await fetch(getApiUrl('/api/ai/assistant'), {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -50,7 +51,7 @@ export class AICoreOrchestratorAdapter implements IAICoreOrchestratorPort {
   async getSystemHealthDiagnostics(): Promise<{ globalStatus: string; score: number; summary: string }> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch('/api/ai/system-health', {
+      const response = await fetch(getApiUrl('/api/ai/system-health'), {
         headers
       });
       const result = await response.json();

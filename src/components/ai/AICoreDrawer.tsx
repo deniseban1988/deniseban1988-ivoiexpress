@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole } from '../../types';
+import { getApiUrl } from '../../lib/api';
 import {
   AIAssistantType,
   AISmartAction,
@@ -94,7 +95,7 @@ export const AICoreDrawer: React.FC<AICoreDrawerProps> = ({ isOpen, onClose, use
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/ai/assistant', {
+      const response = await fetch(getApiUrl('/api/ai/assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

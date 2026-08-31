@@ -2,6 +2,7 @@ import { IPaymentGatewayPort, INotificationPort, IAuditLoggerPort } from '../../
 import { PaymentMethod, UserRole, AuditLog } from '../../../types';
 import { INITIAL_AUDIT_LOGS } from '../../../data/mockData';
 import { auth } from '../../../lib/firebase';
+import { getApiUrl } from '../../../lib/api';
 
 const getAuthHeaders = async () => {
   const token = await auth.currentUser?.getIdToken();
@@ -21,7 +22,7 @@ export class TransversalPaymentAdapter implements IPaymentGatewayPort {
   ): Promise<{ success: boolean; reference: string; message: string }> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transversal/payment/process', {
+      const response = await fetch(getApiUrl('/api/transversal/payment/process'), {
         method: 'POST',
         headers,
         body: JSON.stringify({ module, amount, method, customerName, customerPhone })
@@ -54,7 +55,7 @@ export class MultiChannelNotificationAdapter implements INotificationPort {
   ): Promise<{ success: boolean; notificationId: string }> {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch('/api/transversal/notifications/send', {
+      const response = await fetch(getApiUrl('/api/transversal/notifications/send'), {
         method: 'POST',
         headers,
         body: JSON.stringify({ channel, recipient, title, body })

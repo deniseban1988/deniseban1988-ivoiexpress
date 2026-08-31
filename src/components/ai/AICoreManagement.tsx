@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole } from '../../types';
+import { getApiUrl } from '../../lib/api';
 import {
   AIAssistantConfig,
   TransversalServiceStatus,
@@ -83,7 +84,7 @@ export const AICoreManagement: React.FC<AICoreManagementProps> = ({ userRole, on
     setSandboxResponse(null);
 
     try {
-      const res = await fetch('/api/ai/assistant', {
+      const res = await fetch(getApiUrl('/api/ai/assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,7 +107,7 @@ export const AICoreManagement: React.FC<AICoreManagementProps> = ({ userRole, on
     if (!notifTitle || !notifBody) return;
 
     try {
-      const res = await fetch('/api/transversal/notifications/send', {
+      const res = await fetch(getApiUrl('/api/transversal/notifications/send'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -143,7 +144,7 @@ export const AICoreManagement: React.FC<AICoreManagementProps> = ({ userRole, on
     setDiagnosticResult(null);
 
     try {
-      const res = await fetch('/api/ai/system-health');
+      const res = await fetch(getApiUrl('/api/ai/system-health'));
       const data = await res.json();
       setDiagnosticResult(data);
     } catch (e) {
